@@ -53,11 +53,16 @@ def main():
         sys.exit(1)
 
 MATCHES = {
-    "AGGREGATOR_RUNNER": "Aggregator / Attestor",
+    "AGGREGATOR_RUNNER": "Aggregator / Attester",
     "VALIDATOR_REGISTRATION_RUNNER": "Validator registration",
     "VALIDATOR_REGISTRATION": "Validator registration",
     "AGGREGATOR": "Aggregator",
-    "ATTESTER": "Attestor",
+    "ATTESTER": "Attester",
+    "PROPOSER": "Proposer",
+    "SYNC_COMMITTEE": "Sync committee",
+    "CLUSTER": "Cluster",
+    "VOLUNTARY_EXIT": "Voluntary exit",
+    "COMMITTEE_RUNNER": "Committee"
 }
 
 def main_function():
@@ -116,7 +121,7 @@ def main_function():
             elif (log[2] == "P2PNetwork") and log[3] == "Verified handshake nodeinfo":
                 continue
 
-            elif (log[2] == "P2PNetwork") and log[3] == "starting":
+            elif (log[2] == "P2PNetwork") and (log[3] == "starting" or log[3] == "starting p2p"):
                 tolog = "Starting P2P networking"
 
             elif (log[2] == "P2PNetwork") and log[3] == "configuring":
@@ -202,6 +207,8 @@ def main_function():
 
             elif log[2] == "DutyScheduler" and "indices change received" in log[3]:
                 data = json.loads(log[4])
+                if NOSPAM:
+                    continue
                 tolog = f"Received indices change {data['handler']}"
 
             elif log[2] == "DutyScheduler" and "✅ successfully submitted attestations" in log[3]:
@@ -239,6 +246,22 @@ def main_function():
                     continue
                 data = json.loads(log[4])
                 tolog = f"Sent new event to conensus client topic: {colorama.Fore.LIGHTMAGENTA_EX}{data['topic']}{colorama.Fore.RESET} identifier: {colorama.Fore.LIGHTMAGENTA_EX}{data['subscriber_identifier']}{colorama.Fore.RESET}"
+
+            elif log[2] == "consensus_client" and "consensus client synced" in log[3]:
+                data = json.loads(log[4])
+                tolog = f"Consensus client synced at {colorama.Fore.LIGHTMAGENTA_EX}{data['address']}{colorama.Fore.RESET}"
+
+            elif log[2] == "consensus_client" and "consensus client connected" in log[3]:
+                data = json.loads(log[4])
+                tolog = f"Consensus client connected at {colorama.Fore.LIGHTMAGENTA_EX}{data['address']} ({data['version']}){colorama.Fore.RESET}"
+
+            elif log[2] == "consensus_client" and "retrieved fork epochs" in log[3]:
+                data = json.loads(log[4])
+                tolog = "Retrieved fork epochs from consensus client. "
+                for key, value in data.items():
+                    if key in ["node_addr", "current_data_version"]:
+                        continue
+                    tolog += f"{key}: {colorama.Fore.CYAN}{value}{colorama.Fore.RESET} "
 
             # Controller
 
@@ -290,9 +313,13 @@ def main_function():
                 tolog = f"Skipping setup for validator {colorama.Fore.RED}{data['pubkey'][:8]}" + \
                     f"{colorama.Fore.RESET} until it becomes active on beacon chain."
 
+            elif log[2] == "Controller" and log[3] == "recording validator status":
+                data = json.loads(log[4])
+                tolog = f"Validators currently {colorama.Fore.CYAN}{data['status']}{colorama.Fore.RESET}: {colorama.Fore.LIGHTMAGENTA_EX}{data['count']}{colorama.Fore.RESET}"
+
             elif log[2] == "Controller" and log[3] == "setup validators done":
                 data = json.loads(log[4])
-                tolog = f"Complete configuration for {colorama.Fore.MAGENTA}{data['shares']}" + \
+                tolog = f"Completed configuration for {colorama.Fore.MAGENTA}{data['shares']}" + \
                     f"{colorama.Fore.RESET} validators."
 
                 additional_logs.append(f"Successfully configured and started {colorama.Fore.GREEN}" + \
@@ -340,7 +367,44 @@ def main_function():
                 data = json.loads(log[4])
                 tolog = f"Failed to parse event {data['event']}"
 
+            # Operator
+
+            elif log[2] == "Operator.DutyScheduler" and log[3] == "ℹ️ starting duty processing":
+                data = json.loads(log[4])
+                tolog = f"Running {MATCHES[data['role']]} duty for slot {colorama.Fore.LIGHTMAGENTA_EX}{data['slot']}" + \
+                    f"{colorama.Fore.RESET} in committee {colorama.Fore.LIGHTMAGENTA_EX}{data['committee_id'][:12]}..."
+
+            elif log[2] == "Operator.DutyScheduler" and log[3] == "failed to submit beacon committee subscription":
+                data = json.loads(log[4])
+                err = data['error'].replace('\\"', '\"').replace('\\n', '\n')
+                tolog = f"Failed to submit beacon commitee subscribtion for role {MATCHES[data['handler']]}." + \
+                    f" Error: {colorama.Fore.LIGHTRED_EX}{err}{colorama.Fore.RESET}"
+
+            elif log[2] == "Operator.DutyScheduler" and log[3] == "failed to submit beacon committee subscription":
+                data = json.loads(log[4])
+                tolog = f"{data}"
+
+            elif log[2] == "Operator.DutyScheduler" and log[3] == "🔁 indices change received":
+                if NOSPAM:
+                    continue
+                data = json.loads(log[4])
+                tolog = f"Received indices change for {colorama.Fore.LIGHTMAGENTA_EX}{MATCHES[data['handler']]}{colorama.Fore.RESET} duty"
+
+            elif log[2] == "Operator.DutyScheduler" and log[3] == "could not execute committee duty":
+                data = json.loads(log[4])
+                err = data['error'].replace('\\"', '\"').replace('\\n', '\n')
+                tolog = f"Failed to execute committee duty for {MATCHES[data['handler']]} duty at {colorama.Fore.CYAN}slot {data['slot']}{colorama.Fore.RESET}." + \
+                    f"Error {colorama.Fore.LIGHTRED_EX}{err}{colorama.Fore.RESET}"
+
+            elif log[2] == "Operator.DutyScheduler" and log[3] == "starting duty handler":
+                data = json.loads(log[4])
+                tolog = f"Starting {MATCHES[data['handler']]} duty handler"
+
             # Miscellaneous log handling
+
+            elif log[2] == "increasing MaxPeers to match the operator's subscribed subnets":
+                data = json.loads(log[3])
+                tolog = f"Increasing MaxPeers to {colorama.Fore.MAGENTA}{data['new_max_peers']}{colorama.Fore.RESET} to match the operator's subscribed subnets (from {colorama.Fore.MAGENTA}{data['old_max_peers']}{colorama.Fore.RESET})."
 
             elif log[2] == "setting ssv network":
                 data = json.loads(log[3])
@@ -392,6 +456,8 @@ def main_function():
                 additional_logs.append(f"Validators managed    : {data['my_validators']}")
 
             elif log[2] == "All required services are ready. " + \
+                    "OPERATOR SUCCESSFULLY CONFIGURED AND NOW RUNNING!" or \
+                    log[3] == "All required services are ready. " + \
                     "OPERATOR SUCCESSFULLY CONFIGURED AND NOW RUNNING!":  
                 tolog = "Operator configured sucessfully"
 
