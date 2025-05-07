@@ -131,6 +131,13 @@ def main_function():
                 data = json.loads(log[4])
                 tolog = f"Using discv5 for discovery. Using {colorama.Fore.LIGHTMAGENTA_EX}" + \
                     f"{len(data['bootnodes'])}{colorama.Fore.RESET} bootnodes."
+                
+            elif (log[2] == "P2PNetwork" and log[3] == "proposed discovered peers"):
+                if NOSPAM:
+                    continue
+                data = json.loads(log[4])
+                tolog = f"Discovered {colorama.Fore.LIGHTMAGENTA_EX}" + \
+                    f"{len(data['count'])}{colorama.Fore.RESET} new nodes."
 
             # Execution Client
 
@@ -214,6 +221,24 @@ def main_function():
                 data = json.loads(log[4])
                 tolog = f"No committee runner found for slot {colorama.Fore.LIGHTMAGENTA_EX}{data['slot']}" + \
                     f"{colorama.Fore.RESET} in committee {colorama.Fore.LIGHTMAGENTA_EX}{data['committee_id'][:12]}..."
+
+            elif log[2] == "Operator.DutyScheduler" and "received head event." in log[3]:
+                data = json.loads(log[4])
+                tolog = f"Processesing new block {colorama.Fore.LIGHTMAGENTA_EX}{data['slot']}{colorama.Fore.RESET}"
+
+            # consensus_client
+
+            elif log[2] == "consensus_client" and "block root to slot cache updated" in log[3]:
+                if NOSPAM:
+                    continue
+                data = json.loads(log[4])
+                tolog = f"Updated slot cache to block root {colorama.Fore.LIGHTMAGENTA_EX}{data['block_root']}{colorama.Fore.RESET}"
+
+            elif log[2] == "consensus_client" and "event broadcasted" in log[3]:
+                if NOSPAM:
+                    continue
+                data = json.loads(log[4])
+                tolog = f"Sent new event to conensus client topic: {colorama.Fore.LIGHTMAGENTA_EX}{data['topic']}{colorama.Fore.RESET} identifier: {colorama.Fore.LIGHTMAGENTA_EX}{data['subscriber_identifier']}{colorama.Fore.RESET}"
 
             # Controller
 
