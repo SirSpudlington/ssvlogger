@@ -136,13 +136,13 @@ def main_function():
                 data = json.loads(log[4])
                 tolog = f"Using discv5 for discovery. Using {colorama.Fore.LIGHTMAGENTA_EX}" + \
                     f"{len(data['bootnodes'])}{colorama.Fore.RESET} bootnodes."
-                
+
             elif (log[2] == "P2PNetwork" and log[3] == "proposed discovered peers"):
                 if NOSPAM:
                     continue
                 data = json.loads(log[4])
                 tolog = f"Discovered {colorama.Fore.LIGHTMAGENTA_EX}" + \
-                    f"{len(data['count'])}{colorama.Fore.RESET} new nodes."
+                    f"{data['count']}{colorama.Fore.RESET} new nodes."
 
             # Execution Client
 
@@ -211,23 +211,23 @@ def main_function():
                     continue
                 tolog = f"Received indices change {data['handler']}"
 
-            elif log[2] == "DutyScheduler" and "✅ successfully submitted attestations" in log[3]:
+            elif (log[2] == "DutyScheduler" or log[2] == "Operator.DutyScheduler") and "✅ successfully submitted attestations" in log[3]:
                 data = json.loads(log[4])
                 commitee = data['committee_id'][:12] + "..."
                 tolog = f"{colorama.Fore.GREEN}Successfully submitted attestations{colorama.Fore.RESET} for slot {colorama.Fore.LIGHTMAGENTA_EX}{data['slot']}" + \
-                    f"{colorama.Fore.RESET} in committee {colorama.Fore.LIGHTMAGENTA_EX}{commitee}{colorama.Fore.RESET}" + \
-                    f"in {seconds_to_ms_or_s(data['total_consensus_time'])}"
+                    f"{colorama.Fore.RESET} for committee {colorama.Fore.LIGHTMAGENTA_EX}{commitee}{colorama.Fore.RESET}" + \
+                    f" in {seconds_to_ms_or_s(data['consensus_time'])}"
 
             elif log[2] == "DutyScheduler" and "starting duty processing" in log[3]:
                 data = json.loads(log[4])
                 commitee = data['committee_id'][:12] + "..."
                 tolog = f"Running duty for slot {colorama.Fore.LIGHTMAGENTA_EX}{data['slot']}" + \
-                    f"{colorama.Fore.RESET} in committee {colorama.Fore.LIGHTMAGENTA_EX}{commitee}{colorama.Fore.RESET}"
+                    f"{colorama.Fore.RESET} for committee {colorama.Fore.LIGHTMAGENTA_EX}{commitee}{colorama.Fore.RESET}"
 
             elif log[2] == "DutyScheduler" and "❗no committee runner found for slot" in log[3]:
                 data = json.loads(log[4])
                 tolog = f"No committee runner found for slot {colorama.Fore.LIGHTMAGENTA_EX}{data['slot']}" + \
-                    f"{colorama.Fore.RESET} in committee {colorama.Fore.LIGHTMAGENTA_EX}{data['committee_id'][:12]}..."
+                    f"{colorama.Fore.RESET} for committee {colorama.Fore.LIGHTMAGENTA_EX}{data['committee_id'][:12]}..."
 
             elif log[2] == "Operator.DutyScheduler" and "received head event." in log[3]:
                 data = json.loads(log[4])
@@ -262,6 +262,15 @@ def main_function():
                     if key in ["node_addr", "current_data_version"]:
                         continue
                     tolog += f"{key}: {colorama.Fore.CYAN}{value}{colorama.Fore.RESET} "
+
+            elif log[2] == "consensus_client" and "submitted batched validator registrations" in log[3]:
+                data = json.loads(log[4])
+                tolog = f"Submitted {colorama.Fore.LIGHTMAGENTA_EX}{data['count']}{colorama.Fore.RESET} validator registrations at slot {colorama.Fore.CYAN}{data['slot']}{colorama.Fore.RESET}"
+
+            elif log[2] == "consensus_client" and "going to submit batch validator registrations" in log[3]:
+                data = json.loads(log[4])
+                tolog = f"Going to submit {colorama.Fore.LIGHTMAGENTA_EX}{data['count']}{colorama.Fore.RESET} validator registrations at slot {colorama.Fore.CYAN}{data['slot']}{colorama.Fore.RESET}"
+
 
             # Controller
 
@@ -351,7 +360,7 @@ def main_function():
 
             elif log[2] == "Controller" and "starting new validator" in log[3]:
                 data = json.loads(log[4])
-                tolog = f"Starting new validator {colorama.Fore.MAGENTA}{data['pubKey'][:8]}{colorama.Fore.RESET}"
+                tolog = f"Starting new validator {colorama.Fore.MAGENTA}0x{data['pubkey'][:8]}{colorama.Fore.RESET}"
 
             # EventHandler
 
