@@ -337,7 +337,7 @@ def main_function():
     colorama.init()
     args = parse_args()
 
-    if sys.stdin is not None:
+    if args.log_file is not None:
         inp = open(args.log_file, "r", encoding="utf-8")
         while (line := inp.readline()) != "":
             line = json.loads(line)

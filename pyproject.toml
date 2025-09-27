@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ssvlogger"
-version = "1.7.0"
+version = "1.7.1"
 description = "A simple python package to parse SSV node logs and make them legible"
 readme = "README.md"
 requires-python = ">=3.11"
