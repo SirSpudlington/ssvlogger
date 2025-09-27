@@ -30,6 +30,10 @@ Or you could use:
 
 `journalctl -u ssv_node -f --output cat | ssvlogger`
 
+### Directly on the log file
+
+If you specify `ssvlogger [FILE]` the script will attempt to read the file instead of using journalctl or docker.
+
 ## Additional Flags
 
 You can also use different flags to disable or enable certain features in the script

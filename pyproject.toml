@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ssvlogger"
-version = "1.5.0"
+version = "1.7.0"
 description = "A simple python package to parse SSV node logs and make them legible"
 readme = "README.md"
-requires-python = ">=3.8"
-license = { file="LICENSE" } # Assuming the license is in a file named LICENSE
+requires-python = ">=3.11"
+license = { file="LICENSE" }
 authors = [
-    { name = "JKinc"},
+    { name = "SirSpudlington"},
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -24,8 +24,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/JKincorperated/ssvlogger"
-Issues = "https://github.com/JKincorperated/ssvlogger/issues"
+Homepage = "https://github.com/SirSpudlington/ssvlogger"
+Issues = "https://github.com/SirSpudlington/ssvlogger/issues"
 
 [project.scripts]
 ssvlogger = "ssvlogger.logger:main"
