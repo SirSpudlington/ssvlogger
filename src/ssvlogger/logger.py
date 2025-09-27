@@ -116,17 +116,17 @@ def process_log(line: str, args: Any):
     additional_logs = []
     tolog = ""
 
-    # try:
-    x = switch_log(log, stat, args)
-    if x is None:
-        return
-    (tolog, additional_logs) = x
-    # except json.decoder.JSONDecodeError: FIXME
-    #     tolog = "        ".join(log[2:])
-    # except IndexError:
-    #     tolog = "        ".join(log[2:])
-    # except KeyError:
-    #     tolog = "        ".join(log[2:])
+    try:
+        x = switch_log(log, stat, args)
+        if x is None:
+            return
+        (tolog, additional_logs) = x
+    except json.decoder.JSONDecodeError:
+        tolog = "        ".join(log[2:])
+    except IndexError:
+        tolog = "        ".join(log[2:])
+    except KeyError:
+        tolog = "        ".join(log[2:])
 
     # Print log to stdout
     print(f"{time} {stat}: {tolog}")
@@ -326,9 +326,9 @@ def main():
     except KeyboardInterrupt:
         print("\nExiting...")
         sys.exit(0)
-    # except Exception as error: FIXME
-    #     print(f"{colorama.Fore.RED}SSVLogger Error: {error}{colorama.Fore.RESET}")
-    #     sys.exit(1)
+    except Exception as error:
+        print(f"{colorama.Fore.RED}SSVLogger Error: {error}{colorama.Fore.RESET}")
+        sys.exit(1)
 
 
 def main_function():
